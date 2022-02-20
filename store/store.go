@@ -1,6 +1,7 @@
 package store
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/StuartsHome/YA-KVS/model"
@@ -39,6 +40,7 @@ func (st *store) Get(key string) (int, error) {
 	}
 	return 0, err
 }
+
 func (st *store) Put(key string, val int) error {
 	// Fetch db.
 	db := st.db
@@ -55,5 +57,21 @@ func (st *store) Put(key string, val int) error {
 
 	// Save.
 	st.db = db
+	return nil
+}
+
+func (st *store) Delete(key string) error {
+	// Fetch db.
+	db := st.db
+	var err model.DBError
+
+	// Check if key in db.
+	if _, ok := db[key]; !ok {
+		// If not in db, return an error.
+		err.Message = fmt.Sprintf("key %s not found in db", key)
+		return err
+	}
+
+	delete(db, key)
 	return nil
 }
