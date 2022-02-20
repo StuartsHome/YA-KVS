@@ -7,5 +7,6 @@ type Response struct {
 }
 
 type Store interface {
-	Get() (Response, error)
+	Get(key string) (int, error)
+	Put(key string, val int) error
 }
