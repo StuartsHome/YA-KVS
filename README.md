@@ -6,6 +6,9 @@
 In-memory DB.
 ACI - No durability as in-memory
 
+### Concurrency
+One process at a time.
+Each process acquires a lock.
 
 ### Benchmarks
 Get()
@@ -19,10 +22,6 @@ PASS
 coverage: [no statements]
 ok  	github.com/StuartsHome/YA-KVS/handler	1.902s
 ```
-
-### Concurrency
-One process at a time.
-Each process acquires a lock.
 
 #### Thoughts
 Transactions using MVCC.

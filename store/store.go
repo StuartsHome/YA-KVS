@@ -9,13 +9,16 @@ import (
 
 type store struct {
 	db map[string]int
+	t  Transaction
 
 	// Single writer.
 	writer sync.Mutex
 }
 
 func NewStore() *store {
-	st := &store{}
+	st := &store{
+		t: NewTransaction(),
+	}
 
 	if err := st.startUp(); err != nil {
 		return nil
