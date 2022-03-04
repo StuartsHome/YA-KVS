@@ -1,5 +1,12 @@
 ## Yet Another Key-Value Store
+What is a database other than a hashmap?
 
+How advanced can we make this database (hashmap)?
+- Client?
+- Distributed transactions?
+- Consensus? Raft?
+- Spatial Indexing?
+- Benchmarks?
 
 
 ### Design Principles

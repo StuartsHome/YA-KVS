@@ -3,13 +3,13 @@ package store
 import (
 	"fmt"
 	"sync"
-
-	"github.com/StuartsHome/YA-KVS/model"
 )
+
+var GlobalStore = make(map[string]int)
 
 type store struct {
 	db map[string]int
-	t  Transaction
+	t  *transactionStack
 
 	// Single writer.
 	writer sync.Mutex
@@ -32,49 +32,48 @@ func (st *store) startUp() error {
 	return nil
 }
 
-func (st *store) Get(key string) (int, error) {
-	// Fetch db.
-	db := st.db
-	var err model.DBError
-
-	// Check if key in db.
-	if val, ok := db[key]; ok {
-		return val, nil
+func (st *store) Get(key string, t *transactionStack) (int, error) {
+	// Get
+	activeTransaction := t.Peek()
+	if activeTransaction == nil {
+		if val, ok := GlobalStore[key]; ok {
+			return val, nil
+		}
+		return 0, fmt.Errorf("key %s not set in global store", key)
+	} else {
+		if val, ok := activeTransaction.store[key]; ok {
+			return val, nil
+		}
+		return 0, fmt.Errorf("key %s not set in active transaction store", key)
 	}
-	return 0, err
 }
 
-func (st *store) Put(key string, val int) error {
-	// Fetch db.
-	db := st.db
-
-	// Check if key in db.
-	if _, ok := db[key]; !ok {
-		// If not in db, store it!
-		db[key] = val
+func (st *store) Set(key string, val int, t *transactionStack) error {
+	//
+	activeTransaction := t.Peek()
+	if activeTransaction == nil {
+		GlobalStore[key] = val
+	} else {
+		activeTransaction.store[key] = val
 	}
 
-	// If key in db overwrite.
-	// TODO: ok for now.
-	db[key] = val
-
-	// Save.
-	st.db = db
 	return nil
 }
 
-func (st *store) Delete(key string) error {
-	// Fetch db.
-	db := st.db
-	var err model.DBError
-
-	// Check if key in db.
-	if _, ok := db[key]; !ok {
-		// If not in db, return an error.
-		err.Message = fmt.Sprintf("key %s not found in db", key)
-		return err
+func (st *store) Delete(key string, t *transactionStack) error {
+	activeTransaction := t.Peek()
+	if activeTransaction == nil {
+		if _, ok := GlobalStore[key]; ok {
+			delete(GlobalStore, key)
+		} else {
+			return fmt.Errorf("unable to delete key %s as not currently in global store", key)
+		}
+	} else {
+		if _, ok := activeTransaction.store[key]; ok {
+			delete(activeTransaction.store, key)
+		} else {
+			return fmt.Errorf("unable to delete key %s as not currently in transaction store", key)
+		}
 	}
-
-	delete(db, key)
 	return nil
 }

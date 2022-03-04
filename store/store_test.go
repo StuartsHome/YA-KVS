@@ -1,86 +1,90 @@
 package store
 
-import "testing"
+import (
+	"testing"
 
-func TestGet(t *testing.T) {
+	"github.com/stretchr/testify/suite"
+)
+
+type StoreTestSuite struct {
+	suite.Suite
+
+	transactionStack *transactionStack
+}
+
+func (ts *StoreTestSuite) SetupTest() {
+	ts.transactionStack = NewTransaction()
+}
+
+func TestStoreTestSuite(t *testing.T) {
+	suite.Run(t, new(StoreTestSuite))
+}
+
+func (ts *StoreTestSuite) TestGet() {
 	// Given
 	store := NewStore()
 
 	// When
 	key := "Stuart"
 	val := 100
-	err := store.Put(key, val)
-	if err != nil {
-		t.Error(err)
-	}
+	err := store.Set(key, val, ts.transactionStack)
+	ts.Require().NoError(err)
 
 	// Then
-	got, err := store.Get(key)
-	if err != nil {
-		t.Error(err)
-	}
+	got, err := store.Get(key, ts.transactionStack)
+	ts.Require().NoError(err)
 
-	if got != val {
-		t.Error(err)
-	}
+	expected := 100
+	ts.Assert().Equal(expected, got)
 }
 
 func BenchmarkGet(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// Given
 		store := NewStore()
+		transaction := NewTransaction()
 
 		// When
 		key := "Stuart"
 		val := 100
-		err := store.Put(key, val)
-		if err != nil {
-			b.Error(err)
-		}
+		_ = store.Set(key, val, transaction)
 
 		// Then
-		got, err := store.Get(key)
-		if err != nil {
-			b.Error(err)
-		}
+		got, _ := store.Get(key, transaction)
 
-		if got != val {
-			b.Error(err)
+		expected := 100
+		if got != expected {
+			b.Errorf("expected %d, got %d", expected, got)
 		}
 	}
 }
 
-func TestDelete_Success(t *testing.T) {
+func (ts *StoreTestSuite) TestDelete_Success() {
 	// Given
 	store := NewStore()
 	key := "Stuart"
 	val := 100
-	err := store.Put(key, val)
-	if err != nil {
-		t.Error(err)
-	}
+	err := store.Set(key, val, ts.transactionStack)
+	ts.Require().NoError(err)
 
 	// When
-	err = store.Delete(key)
-	if err != nil {
-		t.Error(err)
-	}
+	// When we delete key from current transaction.
+	err = store.Delete(key, ts.transactionStack)
+	ts.Require().NoError(err)
 
 	// Then
-	_, err = store.Get(key)
-	if err == nil {
-		t.Error("this throw an error")
-	}
+	// Then key should no longer be in the current transaction stack.
+	got, err := store.Get(key, ts.transactionStack)
+	ts.Assert().Equal(0, got)
+	ts.Assert().EqualError(err, "key Stuart not set in global store")
 }
 
-func TestDelete_Error(t *testing.T) {
+func (ts *StoreTestSuite) TestDelete_Error() {
 	// Given
 	store := NewStore()
 	key := "Stuart"
 
 	// When
-	err := store.Delete(key)
-	if err == nil {
-		t.Error("this throw an error")
-	}
+	err := store.Delete(key, ts.transactionStack)
+	ts.Assert().EqualError(err, "unable to delete key Stuart as not currently in global store")
 }

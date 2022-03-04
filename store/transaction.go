@@ -73,8 +73,8 @@ func (ts *transactionStack) RollbackTransaction() {
 	}
 }
 
-func NewTransaction() Transaction {
-	return &transaction{}
+func NewTransaction() *transactionStack {
+	return &transactionStack{}
 }
 
 func (t *transaction) CreateNewTransaction() error {
