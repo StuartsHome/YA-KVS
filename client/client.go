@@ -1,15 +1,22 @@
 package client
 
-import "context"
+import (
+	"context"
+
+	"github.com/StuartsHome/YA-KVS/store"
+)
 
 type Client struct {
 	config Config
 	ctx    context.Context
+
+	cache *store.StoreImpl
 }
 
 func New(cnfg Config) *Client {
 	return &Client{
 		config: cnfg,
+		cache:  store.NewStore(),
 	}
 }
 

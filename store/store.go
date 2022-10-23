@@ -7,7 +7,7 @@ import (
 
 var GlobalStore = make(map[string]int)
 
-type store struct {
+type StoreImpl struct {
 	db map[string]int
 	t  *transactionStack
 
@@ -15,8 +15,8 @@ type store struct {
 	writer sync.Mutex
 }
 
-func NewStore() *store {
-	st := &store{
+func NewStore() *StoreImpl {
+	st := &StoreImpl{
 		t: NewTransaction(),
 	}
 
@@ -27,12 +27,12 @@ func NewStore() *store {
 	return st
 }
 
-func (st *store) startUp() error {
+func (st *StoreImpl) startUp() error {
 	st.db = make(map[string]int)
 	return nil
 }
 
-func (st *store) Get(key string, t *transactionStack) (int, error) {
+func (st *StoreImpl) Get(key string, t *transactionStack) (int, error) {
 	// Get
 	activeTransaction := t.Peek()
 	if activeTransaction == nil {
@@ -48,7 +48,7 @@ func (st *store) Get(key string, t *transactionStack) (int, error) {
 	}
 }
 
-func (st *store) Set(key string, val int, t *transactionStack) error {
+func (st *StoreImpl) Set(key string, val int, t *transactionStack) error {
 	//
 	activeTransaction := t.Peek()
 	if activeTransaction == nil {
@@ -60,7 +60,7 @@ func (st *store) Set(key string, val int, t *transactionStack) error {
 	return nil
 }
 
-func (st *store) Delete(key string, t *transactionStack) error {
+func (st *StoreImpl) Delete(key string, t *transactionStack) error {
 	activeTransaction := t.Peek()
 	if activeTransaction == nil {
 		if _, ok := GlobalStore[key]; ok {
