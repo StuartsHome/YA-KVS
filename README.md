@@ -1,5 +1,6 @@
-## Yet Another Key-Value Store
-What is a database other than a hashmap?
+# Yet Another - Key Value Store
+
+What is a database other than a hashmap? `YAKVS` provides an in-memory DB.
 
 How advanced can we make this database (hashmap)?
 - Client?

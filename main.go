@@ -7,9 +7,7 @@ import (
 )
 
 func main() {
-
 	// New store.
 	store := store.NewStore()
 	fmt.Println(store)
-
 }
